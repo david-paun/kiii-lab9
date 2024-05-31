@@ -1,0 +1,61 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: middleware-182041
+  namespace: 182041-namespace
+spec:
+  stripPrefix:
+    forceSlash: false
+    prefixes:
+      - /ver1
+      - /ver2
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: 182041-ingress
+  namespace: 182041-namespace
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+    traefik.ingress.kubernetes.io/router.middlewares: 182041-namespace-middleware-182041@kubernetescrd
+spec:
+  rules:
+    - http:
+        paths:
+          - path: "/ver1"
+            pathType: Prefix
+            backend:
+              service:
+                name: service-182041-v1
+                port:
+                  number: 80
+          - path: "/ver2"
+            pathType: Prefix
+            backend:
+              service:
+                name: service-182041-v2
+                port:
+                  number: 80
+    - host: "ver1"
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: service-182041-v1
+                port:
+                  number: 80
+    - host: "ver2"
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: service-182041-v2
+                port:
+                  number: 80
+
